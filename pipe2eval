@@ -1,0 +1,287 @@
+#!/bin/bash
+
+# TODO
+# * each buffer should has it's own context
+
+INPUT_LANG=$1
+if [ -z "$PIP2EVAL_TMP_FILE_PATH" ]; then
+	PIP2EVAL_TMP_FILE_PATH=/dev/shm/
+fi
+PREFIX=repl
+TMP_FILE=$PIP2EVAL_TMP_FILE_PATH$PREFIX.$INPUT_LANG
+
+
+fn_exists(){
+	declare -F $1 &> /dev/null
+	return $?
+}
+
+fn_call(){
+	if fn_exists $INPUT_LANG\_$1; then
+		$INPUT_LANG\_$1 ${@:2}
+	else
+		default_$1 ${@:2}
+	fi
+}
+
+process_commands(){
+	cmd="$(sed -n '1 s/^#:\([a-zA-Z0-9_-]\+\) \?\(.*\)\?$/\1/p' < $TMP_FILE.new)"
+	args="$(sed -n '1 s/^#:\([^ ]\+\) \(.*\)$/\2/p' < $TMP_FILE.new)"
+	if [ -n "$cmd" ]; then
+		fn_call command_$cmd "$args"
+		exit 0
+	fi
+}
+
+
+# commands ---------------------------------------------------------------------
+
+default_command_files(){
+	find $PIP2EVAL_TMP_FILE_PATH -maxdepth 1 -name "$PREFIX.$INPUT_LANG*"
+}
+
+
+default_command_set(){
+	if [ -n "$1" ]; then
+		echo $2 > $TMP_FILE.$1
+	fi
+}
+
+
+
+# default ----------------------------------------------------------------------
+
+default_comment(){
+	# do nothing
+	:
+}
+
+default_init(){
+	> $TMP_FILE
+	> $TMP_FILE.error
+}
+
+default_reset(){
+	> $TMP_FILE
+	> $TMP_FILE.error
+	echo '# context cleared'
+}
+
+default_error(){
+	echo "# >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+	sed -e 's/^\(.*\)$/#     \1/' < "$TMP_FILE.error"
+	echo "# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+}
+
+default_merge(){
+	# do nothing
+	:
+}
+
+default_eval(){
+	cat $TMP_FILE "$TMP_FILE.new" |  $INPUT_LANG - 2> "$TMP_FILE.error" | sed -e 's/^\(.*\)$/# \1/'
+}
+
+# php --------------------------------------------------------------------------
+
+php_reset(){
+	echo '<?php ' > $TMP_FILE
+}
+
+php_eval(){
+	functions=$(sed -n "s/.*function \+\([^(]\+\).*$/\1/p" < "$TMP_FILE.new")
+	for fn in $functions; do
+		sed -i "s/function \+\($fn\) *(/function \1$(date +%s)(/" "$TMP_FILE"
+	done
+
+	cat $TMP_FILE "$TMP_FILE.new" | sed -e '$ s/\(.*\);/var_export(\1);/' | php  2> "$TMP_FILE.error" | sed -e 's/^\(.*\)$/# \1/'
+}
+
+php_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# python -----------------------------------------------------------------------
+
+python_reset(){
+	echo 'import pprint' > $TMP_FILE
+}
+
+python_eval(){
+	tail -1 $TMP_FILE.new | grep -q '^\s*\(return\|import\|from\)'
+
+	if [ $? -eq 0 ]; then
+		cat $TMP_FILE $TMP_FILE.new | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+	else
+		cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed -e '$ s/.*/____ = &/' -e '$ a\pprint.pprint(____)' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+	fi
+}
+
+python_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# coffeescript -----------------------------------------------------------------
+
+coffee_eval(){
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/.*/console.dir &/' > $TMP_FILE.eval
+	$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+}
+
+coffee_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# javascript -------------------------------------------------------------------
+
+javascript_eval(){
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/.*/console.dir(&)/' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/\/\/ \1/'
+}
+
+javascript_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# ruby -------------------------------------------------------------------------
+
+ruby_eval(){
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+}
+
+ruby_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# go ---------------------------------------------------------------------------
+
+go_eval(){
+	sed -i '/^\/\//d' $TMP_FILE.new
+	$INPUT_LANG run $TMP_FILE.new | sed -e 's/^\(.*\)$/\/\/ \1/'
+}
+
+# bash -------------------------------------------------------------------------
+
+bash_eval(){
+	if [ -f $TMP_FILE.ssh ]; then
+		host="$(cat $TMP_FILE.ssh)"
+		if [ -n "$host" ]; then
+			ssh $host "bash -s" < $TMP_FILE.new 2> $TMP_FILE.error | sed -e 's/.*/# &/'
+		else
+			rm $TMP_FILE.ssh
+			bash $TMP_FILE.new 2> $TMP_FILE.error | sed -e 's/.*/# &/'
+		fi
+	else
+		bash $TMP_FILE.new 2> $TMP_FILE.error | sed -e 's/.*/# &/'
+	fi
+}
+
+# markdown ---------------------------------------------------------------------
+
+markdown_eval(){
+	markdown $TMP_FILE.new
+}
+
+# mongo ------------------------------------------------------------------------
+
+mongo_eval(){
+	tee $TMP_FILE.new
+	db=$(sed -ne 's/^use \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new)
+	DB_SAVED=$TMP_FILE.db
+	if [ -n "$db" ]; then
+		sed -i 's/^use \([a-z0-9_-]\+\)$//i' $TMP_FILE.new
+		echo $db > $DB_SAVED
+	fi
+	_DB="$(cat $DB_SAVED)"
+	sed -i '$ s/.*/printjson(&)/' $TMP_FILE.new
+	mongo --quiet $_DB $TMP_FILE.new
+}
+
+# sql --------------------------------------------------------------------------
+
+sql_eval(){
+	host=`sed -ne 's/^-- host \([a-zA-Z0-9._-]\+\)$/\1/p' < $TMP_FILE.new`
+	user=`sed -ne 's/^-- user \([a-zA-Z0-9._-]\+\)$/\1/p' < $TMP_FILE.new`
+	password=`sed -ne 's/^-- password \([a-zA-Z0-9._#$-]\+\)$/\1/p' < $TMP_FILE.new`
+	db=`sed -ne 's/^use \([a-z0-9_-]\+\);$/\1/ip' < $TMP_FILE.new`
+	if [ -z "$db" ]; then
+		db=`sed -ne 's/^-- database \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new`
+	fi
+
+	HOST_SAVED=$TMP_FILE.host
+	USER_SAVED=$TMP_FILE.user
+	PASSWORD_SAVED=$TMP_FILE.password
+	DB_SAVED=$TMP_FILE.db
+
+	if [ -n "$host" ]; then
+		echo $host > $HOST_SAVED
+		> $DB_SAVED
+	fi
+	if [ -n "$user" ]; then
+		echo $user > $USER_SAVED
+	fi
+	if [ -n "$password" ]; then
+		echo $password > $PASSWORD_SAVED
+	fi
+	if [ -n "$db" ]; then
+		echo $db > $DB_SAVED
+	fi
+
+	_USER="`cat $USER_SAVED`"
+	_PASSWORD="`cat $PASSWORD_SAVED`"
+	_HOST="`cat $HOST_SAVED`"
+	if [ -f "$DB_SAVED" ]; then
+		_DB="`cat $DB_SAVED`"
+	fi
+
+	#TODO use || ?
+	_PIPE=`sed -n '$ s/[^|]*|\(.*\)/\1/p' < $TMP_FILE.new`
+	if [ -n "$_PIPE" ]; then
+		sed -i '$ s/\([^|]*\).*/\1/' $TMP_FILE.new
+		mysql -t -u$_USER -p$_PASSWORD -h$_HOST $_DB < $TMP_FILE.new | $_PIPE
+	else
+		# DATABASE can be empty
+		mysql -t -u$_USER -p$_PASSWORD -h$_HOST $_DB < $TMP_FILE.new | sed -e 's/^\(.*\)$/-- \1/'
+	fi
+}
+
+# xml --------------------------------------------------------------------------
+
+xml_eval(){
+	sed -e 's/^[^<]*//' -e 's/[^>]*$//' | xml_pp
+}
+
+# redis ------------------------------------------------------------------------
+
+# R ----------------------------------------------------------------------------
+
+r_eval(){
+	R --vanilla <$TMP_FILE.new> $TMP_FILE.out
+	sed -n '20,$p' $TMP_FILE.out | sed -ne 's/^\([^>].*\)$/# \1/p'
+}
+
+# main -------------------------------------------------------------------------
+
+main(){
+	tee $TMP_FILE.new
+
+	if [ ! -f "$TMP_FILE" ]; then
+		fn_call 'init'
+	fi
+
+	if [ -z "$(sed '/^$/d' < "$TMP_FILE.new")" ]; then
+		fn_call 'reset'
+		exit 0
+	fi
+
+	process_commands
+
+	fn_call 'eval'
+
+	if [ -s "$TMP_FILE.error" ]; then
+		fn_call 'error'
+	else
+		fn_call 'merge'
+	fi
+}
+
+main
