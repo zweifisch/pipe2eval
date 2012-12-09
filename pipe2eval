@@ -40,6 +40,10 @@ default_command_files(){
 	find $PIP2EVAL_TMP_FILE_PATH -maxdepth 1 -name "$PREFIX.$INPUT_LANG*"
 }
 
+default_command_reset(){
+	find $PIP2EVAL_TMP_FILE_PATH -maxdepth 1 -name "$PREFIX.$INPUT_LANG*" -exec rm -f {} \;
+}
+
 
 default_command_set(){
 	if [ -n "$1" ]; then
@@ -57,8 +61,7 @@ default_comment(){
 }
 
 default_init(){
-	> $TMP_FILE
-	> $TMP_FILE.error
+	fn_call reset > /dev/null
 }
 
 default_reset(){
@@ -105,6 +108,7 @@ php_merge(){
 
 python_reset(){
 	echo 'import pprint' > $TMP_FILE
+	echo '# context cleared'
 }
 
 python_eval(){
@@ -113,7 +117,7 @@ python_eval(){
 	if [ $? -eq 0 ]; then
 		cat $TMP_FILE $TMP_FILE.new | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 	else
-		cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed -e '$ s/.*/____ = &/' -e '$ a\pprint.pprint(____)' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+		cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\n\1pprint.pprint(____)\n\1____/' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 	fi
 }
 
@@ -124,7 +128,7 @@ python_merge(){
 # coffeescript -----------------------------------------------------------------
 
 coffee_eval(){
-	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/.*/console.dir &/' > $TMP_FILE.eval
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\n\1console.dir ____\n\1____/' > $TMP_FILE.eval
 	$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 }
 
