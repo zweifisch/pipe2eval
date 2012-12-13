@@ -139,7 +139,8 @@ coffee_merge(){
 # javascript -------------------------------------------------------------------
 
 javascript_eval(){
-	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/.*/console.dir(&)/' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/\/\/ \1/'
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/.*/console.dir(&)/' > $TMP_FILE.eval
+	node $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/\/\/ \1/'
 }
 
 javascript_merge(){
@@ -188,16 +189,32 @@ markdown_eval(){
 # mongo ------------------------------------------------------------------------
 
 mongo_eval(){
-	tee $TMP_FILE.new
 	db=$(sed -ne 's/^use \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new)
-	DB_SAVED=$TMP_FILE.db
 	if [ -n "$db" ]; then
 		sed -i 's/^use \([a-z0-9_-]\+\)$//i' $TMP_FILE.new
-		echo $db > $DB_SAVED
+		echo $db > $TMP_FILE.db
+		exit 0
 	fi
-	_DB="$(cat $DB_SAVED)"
-	sed -i '$ s/.*/printjson(&)/' $TMP_FILE.new
-	mongo --quiet $_DB $TMP_FILE.new
+	if [ -f $TMP_FILE.db ]; then
+		_DB="$(cat $TMP_FILE.db)"
+		sed -i '$ s/^\(db\..*\)/\
+			var ____ = \1\
+			if("function" == typeof ____.toArray){\
+				____ = ____.toArray()\
+				if (____.length == 1){\
+					____ = ____[0]\
+				}else{\
+					print("items:" + ____.length)\
+				}\
+			}\
+			if(____.length > 20){\
+			}\
+			printjson(____)/'\
+		$TMP_FILE.new
+		mongo --quiet $_DB $TMP_FILE.new
+	else
+		echo '// which db?'
+	fi
 }
 
 # sql --------------------------------------------------------------------------
