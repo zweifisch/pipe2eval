@@ -1,13 +1,15 @@
+# pipe2eval
+
+simple REPL inside vim
+
 ## demos
 
 coffeescript
+
 ![coffeescript](https://github.com/zweifisch/pipe2eval/raw/master/demos/coffee.gif)
 
-mysql
-![mysql](https://github.com/zweifisch/pipe2eval/raw/master/demos/mysql.gif)
-
-mongodb
-![mongodb](https://github.com/zweifisch/pipe2eval/raw/master/demos/mongodb.gif)
+* [mysql](https://github.com/zweifisch/pipe2eval/raw/master/demos/mysql.gif)
+* [mongodb](https://github.com/zweifisch/pipe2eval/raw/master/demos/mongodb.gif)
 
 ## install
 
