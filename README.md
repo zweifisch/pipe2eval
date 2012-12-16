@@ -1,34 +1,33 @@
-## demo
+## demos
 
-TBD
+coffeescript
+![coffeescript](https://github.com/zweifisch/pipe2eval/raw/master/demos/coffee.gif)
+
+mysql
+![mysql](https://github.com/zweifisch/pipe2eval/raw/master/demos/mysql.gif)
+
+mongodb
+![mongodb](https://github.com/zweifisch/pipe2eval/raw/master/demos/mongodb.gif)
 
 ## install
 
-download and chmod
+[download](https://raw.github.com/zweifisch/pipe2eval/master/pipe2eval) and `chmod +x pip2eval`
 
-`vimrc`
+inside `.vimrc`
 ```vim
 au FileType python     vm <buffer> <space> :!pipe2eval python<CR>
 au FileType php        vm <buffer> <space> :!pipe2eval php<CR>
 au FileType coffee     vm <buffer> <space> :!pipe2eval coffee<CR>
 au FileType javascript vm <buffer> <space> :!pipe2eval javascript<CR>
-au FileType ruby       vm <buffer> <space> :!pipe2eval ruby<CR>
-au FileType perl       vm <buffer> <space> :!pipe2eval perl<CR>
-au FileType go         vm <buffer> <space> :!pipe2eval go<CR>
 au FileType sql        vm <buffer> <space> :!pipe2eval sql<CR>
 au FileType mysql      vm <buffer> <space> :!pipe2eval sql<CR>
 au FileType vimwiki    vm <buffer> <space> :!pipe2eval bash<CR>
 au FileType sh         vm <buffer> <space> :!pipe2eval bash<CR>
 au FileType vo_base    vm <buffer> <space> :!pipe2eval bash<CR>
 au BufRead *.mongo     vm <buffer> <space> :!pipe2eval mongo<CR>
-
-au FileType markdown   vm <buffer> <space> :!pipe2eval markdown<CR>
-au FileType json       vm <buffer> <space> :!python -mjson.tool<CR>
-au FileType xml        vm <buffer> <space> :!pipe2eval xml<CR>
-au BufRead *.html      vm <buffer> <space> :!html2text<CR>
 ```
 
-tmpfiles are put to `/dev/shm/` by default, `export PIP2EVAL_TMP_FILE_PATH` to
+tempfiles are put to `/dev/shm/` by default, `export PIP2EVAL_TMP_FILE_PATH` to
 override
 
 ## usage
@@ -58,6 +57,3 @@ to end it
 -- database test
 ```
 
-### mongo db connection
-
-TBD

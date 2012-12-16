@@ -189,9 +189,8 @@ markdown_eval(){
 # mongo ------------------------------------------------------------------------
 
 mongo_eval(){
-	db=$(sed -ne 's/^use \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new)
+	db=$(sed -ne '1 s/^use \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new)
 	if [ -n "$db" ]; then
-		sed -i 's/^use \([a-z0-9_-]\+\)$//i' $TMP_FILE.new
 		echo $db > $TMP_FILE.db
 		exit 0
 	fi
@@ -199,17 +198,22 @@ mongo_eval(){
 		_DB="$(cat $TMP_FILE.db)"
 		sed -i '$ s/^\(db\..*\)/\
 			var ____ = \1\
-			if("function" == typeof ____.toArray){\
-				____ = ____.toArray()\
-				if (____.length == 1){\
-					____ = ____[0]\
-				}else{\
-					print("items:" + ____.length)\
+			if("undefined" != typeof ____){\
+				if("function" == typeof ____.toArray){\
+					____ = ____.toArray()\
+					if (____.length == 1){\
+						____ = ____[0]\
+					}else{\
+						print("items:" + ____.length)\
+					}\
 				}\
-			}\
-			if(____.length > 20){\
-			}\
-			printjson(____)/'\
+				if(____.length > 20){\
+					printjson(____.slice(0,20))\
+					print("...")\
+				}else{\
+					printjson(____)\
+				}\
+			}/'\
 		$TMP_FILE.new
 		mongo --quiet $_DB $TMP_FILE.new
 	else
@@ -223,7 +227,7 @@ sql_eval(){
 	host=`sed -ne 's/^-- host \([a-zA-Z0-9._-]\+\)$/\1/p' < $TMP_FILE.new`
 	user=`sed -ne 's/^-- user \([a-zA-Z0-9._-]\+\)$/\1/p' < $TMP_FILE.new`
 	password=`sed -ne 's/^-- password \([a-zA-Z0-9._#$-]\+\)$/\1/p' < $TMP_FILE.new`
-	db=`sed -ne 's/^use \([a-z0-9_-]\+\);$/\1/ip' < $TMP_FILE.new`
+	db=`sed -ne 's/^use \([a-z0-9_-]\+\);\?$/\1/ip' < $TMP_FILE.new`
 	if [ -z "$db" ]; then
 		db=`sed -ne 's/^-- database \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new`
 	fi
