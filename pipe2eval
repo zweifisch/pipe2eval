@@ -150,7 +150,12 @@ javascript_merge(){
 # ruby -------------------------------------------------------------------------
 
 ruby_eval(){
-	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | $INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' |\
+		sed '$ s/^\([ \t]*\)\(.*\)$/\
+			\1____ =\2\
+			\1puts ____.inspect\
+			\1____/' |\
+		$INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 }
 
 ruby_merge(){
@@ -196,8 +201,8 @@ mongo_eval(){
 	fi
 	if [ -f $TMP_FILE.db ]; then
 		_DB="$(cat $TMP_FILE.db)"
-		sed -i '$ s/^\(db\..*\)/\
-			var ____ = \1\
+		sed -e 's/^\(db\..*\)/var ____ = \1/' \
+		-e '$ a \
 			if("undefined" != typeof ____){\
 				if("function" == typeof ____.toArray){\
 					____ = ____.toArray()\
@@ -213,12 +218,25 @@ mongo_eval(){
 				}else{\
 					printjson(____)\
 				}\
-			}/'\
-		$TMP_FILE.new
-		mongo --quiet $_DB $TMP_FILE.new
+			}' > $TMP_FILE.eval < $TMP_FILE.new
+		mongo --quiet $_DB $TMP_FILE.eval
 	else
 		echo '// which db?'
 	fi
+}
+
+mongo_command_dbs(){
+	echo 'printjson(db.getMongo().getDBNames())' > $TMP_FILE.eval
+	mongo --quiet $TMP_FILE.eval
+}
+
+mongo_command_colls(){
+	echo 'printjson(db.getCollectionNames())' > $TMP_FILE.eval
+	mongo --quiet $TMP_FILE.eval
+}
+
+mongo_command_config(){
+	echo "use $(cat $TMP_FILE.db)"
 }
 
 # sql --------------------------------------------------------------------------

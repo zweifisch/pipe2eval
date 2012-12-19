@@ -21,6 +21,7 @@ au FileType python     vm <buffer> <space> :!pipe2eval python<CR>
 au FileType php        vm <buffer> <space> :!pipe2eval php<CR>
 au FileType coffee     vm <buffer> <space> :!pipe2eval coffee<CR>
 au FileType javascript vm <buffer> <space> :!pipe2eval javascript<CR>
+au FileType ruby       vm <buffer> <space> :!pipe2eval ruby<CR>
 au FileType sql        vm <buffer> <space> :!pipe2eval sql<CR>
 au FileType mysql      vm <buffer> <space> :!pipe2eval sql<CR>
 au FileType vimwiki    vm <buffer> <space> :!pipe2eval bash<CR>
@@ -59,3 +60,8 @@ to end it
 -- database test
 ```
 
+### mongodb commands
+
+```
+#:dbs
+```
