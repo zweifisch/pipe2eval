@@ -128,7 +128,7 @@ python_merge(){
 # coffeescript -----------------------------------------------------------------
 
 coffee_eval(){
-	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\n\1console.dir ____\n\1____/' > $TMP_FILE.eval
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\n\1console.log ____\n\1____/' > $TMP_FILE.eval
 	$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 }
 
@@ -139,7 +139,7 @@ coffee_merge(){
 # javascript -------------------------------------------------------------------
 
 javascript_eval(){
-	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/.*/console.dir(&)/' > $TMP_FILE.eval
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' | sed '$ s/\([^;]*\)/console.log(\1)/' > $TMP_FILE.eval
 	node $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/\/\/ \1/'
 }
 
@@ -223,6 +223,11 @@ mongo_eval(){
 	else
 		echo '// which db?'
 	fi
+}
+
+mongo_command_version(){
+	echo 'print(db.version())' > $TMP_FILE.eval
+	mongo --quiet $TMP_FILE.eval
 }
 
 mongo_command_dbs(){
