@@ -64,4 +64,8 @@ to end it
 
 ```
 #:dbs
+#:collections
+#:version
+#:status mem
+#:status connections
 ```
