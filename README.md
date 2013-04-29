@@ -2,6 +2,8 @@
 
 simple REPL inside vim
 
+supported filetypes: python, php, coffee, sql, mongo, redis, sh, go, javascript, json..
+
 ## demos
 
 coffeescript
@@ -13,21 +15,19 @@ coffeescript
 
 ## install
 
-[download](https://raw.github.com/zweifisch/pipe2eval/master/pipe2eval) and `chmod +x pip2eval`
-
-inside `.vimrc`
+```sh
+sudo curl https://raw.github.com/zweifisch/pipe2eval/master/pipe2eval -o /usr/local/bin/pipe2eval
+sudo chmod +x /usr/local/bin/pipe2eval
+```
+append fellowing lines to `.vimrc`
 ```vim
-au FileType python     vm <buffer> <space> :!pipe2eval python<CR>
-au FileType php        vm <buffer> <space> :!pipe2eval php<CR>
-au FileType coffee     vm <buffer> <space> :!pipe2eval coffee<CR>
-au FileType javascript vm <buffer> <space> :!pipe2eval javascript<CR>
-au FileType ruby       vm <buffer> <space> :!pipe2eval ruby<CR>
-au FileType sql        vm <buffer> <space> :!pipe2eval sql<CR>
-au FileType mysql      vm <buffer> <space> :!pipe2eval sql<CR>
-au FileType vimwiki    vm <buffer> <space> :!pipe2eval bash<CR>
-au FileType sh         vm <buffer> <space> :!pipe2eval bash<CR>
-au FileType vo_base    vm <buffer> <space> :!pipe2eval bash<CR>
-au BufRead *.mongo     vm <buffer> <space> :!pipe2eval mongo<CR>
+com! -nargs=+ Pipe2eval call Pipe2eval(<f-args>)
+
+function! Pipe2eval(lang)
+	execute "vm <buffer> <space> :!pipe2eval ". a:lang . "<CR>"
+endfunction
+
+au FileType * call Pipe2eval(&filetype)
 ```
 
 tempfiles are put to `/dev/shm/` by default, `export PIP2EVAL_TMP_FILE_PATH` to
@@ -37,7 +37,9 @@ override
 
 press `V<space>` to evaluate current line, `vip<space>` to evaluate a paragraph
 
-send a empty line to clear context
+to specify a diffrent filetype `:Pipe2eval redis`
+
+evaluate a empty line will clear the context
 
 ### special commands for bash
 
