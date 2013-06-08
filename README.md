@@ -2,7 +2,7 @@
 
 simple REPL inside vim
 
-supported filetypes: python, php, coffee, sql, mongo, redis, sh, go, javascript, json..
+supported filetypes: python, php, coffee, sql, mongo, redis, sh, go, javascript, ruby, elixir, json..
 
 ## demos
 

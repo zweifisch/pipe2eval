@@ -162,14 +162,33 @@ javascript_merge(){
 
 ruby_eval(){
 	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' |\
-		sed '$ s/^\([ \t]*\)\(.*\)$/\
-			\1____ =\2\
-			\1puts ____.inspect\
-			\1____/' |\
+		sed '$! b
+			/^[ \t]*end/ b
+			s/^\([ \t]*\)\(.*\)$/\
+\1____ =\2\
+\1puts ____.inspect\
+\1____/' |\
 		$INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 }
 
 ruby_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# elixir -----------------------------------------------------------------------
+
+elixir_eval(){
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' |\
+		sed '$! b
+			/^[ \t]*end/ b
+			s/^\([ \t]*\)\(.*\)$/\
+\1____ =\2\
+\1IO.puts inspect ____\
+\1____/' > $TMP_FILE.eval
+		$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+}
+
+elixir_merge(){
 	cat "$TMP_FILE.new" >> $TMP_FILE;
 }
 
