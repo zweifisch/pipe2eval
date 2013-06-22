@@ -96,7 +96,10 @@ php_eval(){
 		sed -i "s/function \+\($fn\) *(/function \1$(date +%s)(/" "$TMP_FILE"
 	done
 
-	cat $TMP_FILE "$TMP_FILE.new" | sed -e '$ s/\(.*\);/var_export(\1);/' |\
+	cat $TMP_FILE "$TMP_FILE.new" |\
+		sed '$! b
+			/^[ \t]*[})]/ b
+			s/\(.*\);/var_export(\1);/' |\
 		php  2> "$TMP_FILE.error" | sed -e 's/^\(.*\)$/# \1/'
 }
 
@@ -119,9 +122,9 @@ python_eval(){
 			sed -e 's/^\(.*\)$/# \1/'
 	else
 		cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' |\
-			sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\
-\1pprint.pprint(____)\
-\1____/' | $INPUT_LANG - 2> $TMP_FILE.error |\
+			sed '$ s/^[^ \t].*$/____ =&\
+\pprint.pprint(____)\
+\____/' | $INPUT_LANG - 2> $TMP_FILE.error |\
 			sed -e 's/^\(.*\)$/# \1/'
 	fi
 }
@@ -190,6 +193,28 @@ elixir_eval(){
 
 elixir_merge(){
 	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+# lua --------------------------------------------------------------------------
+
+lua_eval(){
+	cat $TMP_FILE $TMP_FILE.new | sed -e '/^$/d' |\
+		sed '$! b
+			/^[ \t]*end/ b
+			s/^\([ \t]*\)\(.*\)$/\
+\1____ =\2\
+\1print(____)/' |\
+		$INPUT_LANG - 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/-- \1/'
+}
+
+lua_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
+lua_reset(){
+	> $TMP_FILE
+	> $TMP_FILE.error
+	echo '-- context cleared'
 }
 
 # go ---------------------------------------------------------------------------
