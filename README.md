@@ -2,7 +2,7 @@
 
 simple REPL inside vim
 
-supported filetypes: python, php, coffee, sql, mongo, redis, sh, go, javascript, ruby, elixir, json..
+supports: python, php, coffee, mysql, mongodb, redis, sh, go, javascript, ruby, elixir ...
 
 ## demos
 
@@ -21,7 +21,7 @@ sudo chmod +x /usr/local/bin/pipe2eval
 ```
 append fellowing lines to `.vimrc`
 ```vim
-com! -nargs=+ Pipe2eval call Pipe2eval(<f-args>)
+com! -nargs=+ Pipe2 call Pipe2eval(<f-args>)
 
 function! Pipe2eval(lang)
 	execute "vm <buffer> <space> :!pipe2eval ". a:lang . "<CR>"
@@ -37,21 +37,9 @@ override
 
 press `V<space>` to evaluate current line, `vip<space>` to evaluate a paragraph
 
-to specify a diffrent filetype `:Pipe2eval redis`
+to specify a diffrent filetype use the Pipe2 command `:Pipe2 redis`, `:Pipe2 mongo` ...
 
 evaluate a empty line will clear the context
-
-### special commands for bash
-
-evaluate commands on a remote maschine, to begin
-```
-#:set ssh remote-machine
-```
-
-to end it
-```
-#:set ssh
-```
 
 ### specify a mysql connection
 
@@ -62,12 +50,37 @@ to end it
 -- database test
 ```
 
-### mongodb commands
+### specify a mongodb connection
+
+```javascript
+// host localhost
+// port 27017
+// db test
+```
+
+mongodb commands
 
 ```
-#:dbs
-#:collections
-#:version
-#:status mem
-#:status connections
+//> dbs
+//> collections
+//> version
+//> status
+//> status mem
+//> status connections
+//> connections
+//> session
+```
+
+### special commands for shell
+
+evaluate commands on a remote maschine, to begin
+
+```
+#> set ssh dbserver1
+uptime
+```
+
+end it
+```
+#> set ssh
 ```
