@@ -257,8 +257,13 @@ mongo_exec(){
 }
 
 mongo_eval(){
+	db=$(sed -ne 's/^use \([a-zA-Z0-9_-]\+\)$/\1/p' < $TMP_FILE.new)
+	if [ -n "$db" ]; then
+		echo $db > $TMP_FILE.db
+		exit 0
+	fi
 
-	db=$(sed -ne 's/^\/\/ db \([a-z0-9_-]\+\)$/\1/ip' < $TMP_FILE.new)
+	db=$(sed -ne 's/^\/\/ db \([a-zA-Z0-9_-]\+\)$/\1/p' < $TMP_FILE.new)
 	host=$(sed -ne 's/^\/\/ host \([a-zA-Z0-9._-]\+\)$/\1/p' < $TMP_FILE.new)
 	port=$(sed -ne 's/^\/\/ port \([a-zA-Z0-9._-]\+\)$/\1/p' < $TMP_FILE.new)
 
