@@ -29,7 +29,7 @@ press `V<space>` to evaluate current line, `vip<space>` to evaluate a paragraph
 
 to specify a diffrent filetype use the Pipe2 command `:Pipe2 redis`, `:Pipe2 mongo` ...
 
-evaluate a empty line will clear the context
+evaluate an empty line will clear the context
 
 ### specify a mysql connection
 
@@ -50,20 +50,19 @@ evaluate a empty line will clear the context
 
 mongodb commands
 
-```
+```javascript
 //> dbs
 //> collections
 //> version
 //> status
 //> status mem
-//> status connections
 //> connections
 //> session
 ```
 
 ### special commands for shell
 
-evaluate commands on a remote maschine, to begin
+evaluate commands on a remote maschine
 
 ```
 #> set ssh dbserver1
