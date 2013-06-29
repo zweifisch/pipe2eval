@@ -15,19 +15,9 @@ coffeescript
 
 ## install
 
-```sh
-sudo curl https://raw.github.com/zweifisch/pipe2eval/master/pipe2eval -o /usr/local/bin/pipe2eval
-sudo chmod +x /usr/local/bin/pipe2eval
-```
-append fellowing lines to `.vimrc`
+via vundle
 ```vim
-com! -nargs=+ Pipe2 call Pipe2eval(<f-args>)
-
-function! Pipe2eval(lang)
-	execute "vm <buffer> <space> :!pipe2eval ". a:lang . "<CR>"
-endfunction
-
-au FileType * call Pipe2eval(&filetype)
+Bundle "zweifisch/pipe2eval"
 ```
 
 tempfiles are put to `/dev/shm/` by default, `export PIP2EVAL_TMP_FILE_PATH` to
