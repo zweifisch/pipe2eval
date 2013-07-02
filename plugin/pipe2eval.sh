@@ -282,7 +282,7 @@ if("undefined" != typeof ____ && null != ____){\
 			print("items:" + ____.length)\
 		}\
 	}\
-	if(____.length > 20){\
+	if(Array.isArray(____) && ____.length > 20){\
 		printjson(____.slice(0,20))\
 		print("...")\
 	}else{\
