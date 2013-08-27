@@ -21,7 +21,9 @@ Bundle "zweifisch/pipe2eval"
 ```
 
 tempfiles are put to `/dev/shm/` by default, `export PIP2EVAL_TMP_FILE_PATH` to
-override
+override.
+
+On Mac OS X, `/dev/` is highly locked down permissions wise. If you're on OS X it's recommended to use another folder, such as `/tmp/shms` or similar (you'll have to create it). To this by adding `export PIP2EVAL_TMP_FILE_PATH=/tmp/shms` to your Bash/ZSH RC file.
 
 ## usage
 
