@@ -91,9 +91,14 @@ php_reset(){
 }
 
 php_eval(){
-	functions=$(sed -n "s/.*function \+\([^(]\+\).*$/\1/p" < "$TMP_FILE.new")
-	for fn in $functions; do
-		sed -i "s/function \+\($fn\) *(/function \1$(date +%s)(/" "$TMP_FILE"
+	fns=$(sed -n "s/^function \+\([^(]\+\).*$/\1/p" < "$TMP_FILE.new")
+	for fn in $fns; do
+		sed -i "s/^function \+\($fn\) *(/function \1$(date +%s)(/" "$TMP_FILE"
+	done
+
+	classes=$(sed -n "s/ *class \+\([^ ]\+\).*$/\1/p" < "$TMP_FILE.new")
+	for cls in $classes; do
+		sed -i "s/ *class \+\($cls\)/ class \1$(date +%s)/" "$TMP_FILE"
 	done
 
 	cat $TMP_FILE "$TMP_FILE.new" |\
