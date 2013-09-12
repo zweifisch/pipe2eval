@@ -33,6 +33,19 @@ to specify a diffrent filetype use the Pipe2 command `:Pipe2 redis`, `:Pipe2 mon
 
 evaluate an empty line will clear the context
 
+## key mappings
+By default, pipe2eval maps `<Space>` in Visual mode with:
+
+```vim
+  vmap <buffer> <Space> ':![pipe2eval dir]/plugin/pipe2eval.sh text<CR><CR>'
+```
+
+This mapping can be customized by setting `g:pipe2eval_map_key`. For example:
+
+```vim
+  let g:pipe2eval_map_key = '<Leader>p2e'
+```
+
 ### specify a mysql connection
 
 ```sql
