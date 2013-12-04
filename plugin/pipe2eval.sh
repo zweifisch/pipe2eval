@@ -232,6 +232,32 @@ go_eval(){
 	$INPUT_LANG run $TMP_FILE.new | sed -e 's/^\(.*\)$/\/\/ \1/'
 }
 
+# rust -------------------------------------------------------------------------
+
+rust_eval(){
+	sed -i '/^\/\//d' $TMP_FILE.new
+	$INPUT_LANG run $TMP_FILE.new | sed -e 's/^\(.*\)$/\/\/ \1/'
+}
+
+# haskell ----------------------------------------------------------------------
+
+haskell_reset(){
+	> $TMP_FILE
+	> $TMP_FILE.error
+	echo '-- context cleared'
+}
+
+haskell_eval(){
+	if grep -q '^main' $TMP_FILE.new; then
+		cat $TMP_FILE "$TMP_FILE.new" |\
+			runhaskell 2> "$TMP_FILE.error" | sed -e 's/^\(.*\)$/-- \1/'
+	fi
+}
+
+# haskell_merge(){
+# 	cat "$TMP_FILE.new" | sed '/^main/,$ d' >> $TMP_FILE;
+# }
+
 # bash -------------------------------------------------------------------------
 
 bash_eval(){
@@ -404,6 +430,13 @@ redis_eval(){
 
 json_eval(){
 	python -mjson.tool < $TMP_FILE.new
+}
+
+# yaml -------------------------------------------------------------------------
+
+yaml_eval(){
+	ruby -ryaml -rjson -e 'puts JSON.pretty_generate(YAML.load(STDIN.read))' \
+		< $TMP_FILE.new 2> "$TMP_FILE.error" | sed -e 's/^\(.*\)$/# \1/'
 }
 
 # html -------------------------------------------------------------------------
