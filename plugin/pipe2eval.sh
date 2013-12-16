@@ -162,7 +162,7 @@ ls_eval(){
 		sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\
 \1console.log ____\
 \1____/' > $TMP_FILE.eval
-	$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+	livescript $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
 }
 
 ls_merge(){
