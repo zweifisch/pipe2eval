@@ -154,6 +154,21 @@ coffee_merge(){
 	cat "$TMP_FILE.new" >> $TMP_FILE;
 }
 
+# livescript ------------------------------------------------------------------
+
+ls_eval(){
+	cat $TMP_FILE $TMP_FILE.new |\
+		sed -e '/^$/d' |\
+		sed '$ s/^\([ \t]*\)\(.*\)$/\1____ =\2\
+\1console.log ____\
+\1____/' > $TMP_FILE.eval
+	$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+}
+
+ls_merge(){
+	cat "$TMP_FILE.new" >> $TMP_FILE;
+}
+
 # javascript -------------------------------------------------------------------
 
 javascript_eval(){
