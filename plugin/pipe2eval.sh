@@ -4,6 +4,8 @@
 # * each buffer should has it's own context
 
 INPUT_LANG=$1
+INPUT_FILE="$2"
+
 if [ -z "$PIP2EVAL_TMP_FILE_PATH" ]; then
 	PIP2EVAL_TMP_FILE_PATH=/dev/shm/
 fi
@@ -33,6 +35,13 @@ process_commands(){
 	fi
 }
 
+hr() {
+	echo -n "$1"
+	pad=$(printf '%0.1s' "-"{1..80})
+	padlen=$((80 - ${#1} - ${#2}))
+	printf '%0.*s' $padlen $pad
+	echo "$2"
+}
 
 # commands ---------------------------------------------------------------------
 
@@ -273,6 +282,19 @@ haskell_eval(){
 # 	cat "$TMP_FILE.new" | sed '/^main/,$ d' >> $TMP_FILE;
 # }
 
+# c ----------------------------------------------------------------------------
+
+c_reset(){
+	c_eval
+}
+
+c_eval(){
+	argv="$(sed -n 's/\s*\/\/// p' $TMP_FILE.new)"
+	cc -Wall -g "$INPUT_FILE" -o "$TMP_FILE.o"
+	hr "// "
+	"$TMP_FILE.o" $argv 2> "$TMP_FILE.error" | sed -e 's/^\(.*\)$/\/\/ \1/'
+}
+
 # bash -------------------------------------------------------------------------
 
 bash_eval(){
@@ -300,7 +322,7 @@ markdown_eval(){
 mongo_exec(){
 	[ -f $TMP_FILE.host ] && host=$(cat $TMP_FILE.host) || host=127.0.0.1
 	[ -f $TMP_FILE.port ] && port=$(cat $TMP_FILE.port) || port=27017
-	[ -f $TMP_FILE.db ] && db=$(cat $TMP_FILE.db) 
+	[ -f $TMP_FILE.db ] && db=$(cat $TMP_FILE.db)
 	mongo --quiet --host $host --port $port $db $TMP_FILE.eval
 }
 
@@ -363,7 +385,7 @@ mongo_command_connections(){
 mongo_command_session(){
 	[ -f $TMP_FILE.host ] && host=$(cat $TMP_FILE.host) || host=127.0.0.1
 	[ -f $TMP_FILE.port ] && port=$(cat $TMP_FILE.port) || port=27017
-	[ -f $TMP_FILE.db ] && db=$(cat $TMP_FILE.db) 
+	[ -f $TMP_FILE.db ] && db=$(cat $TMP_FILE.db)
 
 	echo "host $host"
 	echo "port $port"

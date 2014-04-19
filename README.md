@@ -27,7 +27,7 @@ On Mac OS X, `/dev/` is highly locked down permissions wise. If you're on OS X i
 
 ## usage
 
-press `V<space>` to evaluate current line, `vip<space>` to evaluate a paragraph
+press `v<space>` to evaluate current line, `vip<space>` to evaluate a paragraph
 
 to specify a diffrent filetype use the Pipe2 command `:Pipe2 redis`, `:Pipe2 mongo` ...
 
@@ -87,4 +87,14 @@ uptime
 end it
 ```
 #> set ssh
+```
+
+### c
+
+`v<space>` to complie and run current file
+
+passing arguments
+
+```c
+// arg1 arg2
 ```
