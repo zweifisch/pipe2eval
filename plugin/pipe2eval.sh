@@ -450,6 +450,24 @@ sql_eval(){
 	fi
 }
 
+# sqlite -----------------------------------------------------------------------
+
+sqlite_eval(){
+	file=`sed -ne 's/^-- file \(.*\)$/\1/p' < $TMP_FILE.new`
+
+	FILE_SAVED=$TMP_FILE.file
+
+	if [ -n "$file" ]; then
+		echo $file > $FILE_SAVED
+	fi
+
+	_FILE="`cat $FILE_SAVED`"
+
+	sqlite3 "$_FILE" < $TMP_FILE.new |\
+		sed -e 's/^\(.*\)$/-- \1/'
+}
+
+
 # xml --------------------------------------------------------------------------
 
 xml_eval(){

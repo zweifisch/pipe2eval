@@ -98,3 +98,14 @@ passing arguments
 ```c
 // arg1 arg2
 ```
+
+### sqlite
+
+`:Pipe2 sqlite`
+
+```sql
+-- file /path/to/sqlite3.db
+
+.mode line
+select * from table limit 1;
+```
