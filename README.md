@@ -109,3 +109,7 @@ passing arguments
 .mode line
 select * from table limit 1;
 ```
+
+### rust/go
+
+`v<space>` to complie and run current file

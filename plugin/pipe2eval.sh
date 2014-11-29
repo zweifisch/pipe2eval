@@ -263,8 +263,13 @@ go_eval(){
 # rust -------------------------------------------------------------------------
 
 rust_eval(){
-	sed -i '/^\/\//d' $TMP_FILE.new
-	$INPUT_LANG run $TMP_FILE.new | sed -e 's/^\(.*\)$/\/\/ \1/'
+	hr "// "
+	rustc $INPUT_FILE -o $TMP_FILE.out
+	$TMP_FILE.out | sed -e 's/^\(.*\)$/\/\/ \1/'
+}
+
+rust_reset(){
+	rust_eval
 }
 
 # haskell ----------------------------------------------------------------------
