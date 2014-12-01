@@ -221,6 +221,8 @@ elixir_eval(){
 \1IO.puts inspect ____\
 \1____/' > $TMP_FILE.eval
 		$INPUT_LANG $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/# \1/'
+		sed -i '/the result of the expression is ignored/d' $TMP_FILE.error
+		sed -i '/variable .* is unused/d' $TMP_FILE.error
 }
 
 elixir_merge(){
