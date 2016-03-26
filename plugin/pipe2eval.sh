@@ -184,7 +184,7 @@ javascript_eval(){
 	cat $TMP_FILE $TMP_FILE.new |\
 		sed -e '/^$/d' |\
 		sed '$! b
-			/^[ \t]*[})]/ b
+			/^[ \t]*\([})]\|\]\|var\|let\|const\)/ b
 			s/\(.*\);/console.log(\1);/' > $TMP_FILE.eval
 	node $TMP_FILE.eval 2> $TMP_FILE.error | sed -e 's/^\(.*\)$/\/\/ \1/'
 }
