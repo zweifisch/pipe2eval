@@ -193,6 +193,12 @@ javascript_merge(){
 	cat "$TMP_FILE.new" >> $TMP_FILE;
 }
 
+javascript_reset(){
+	> $TMP_FILE
+	> $TMP_FILE.error
+	echo '// context cleared'
+}
+
 # ruby -------------------------------------------------------------------------
 
 ruby_eval(){
